@@ -32,7 +32,7 @@
         width: 100%;
         max-height: 350px;
       }
-      #exp-type-chart-legend {
+      #exp-type-chart-legend-container {
         height: 400px !important;
       }
     </style>
@@ -63,9 +63,13 @@
                   <div class="card-body">
                     <div class="clearfix">
                       <h4 class="card-title float-start">Categorial Analysiss</h4>
-                      <div id="exp-type-chart-legend" class="">
+                      <div id="exp-type-chart-legend-container" class="">
                         <canvas width="400" height="250" id="exp-type-chart" class="mt-4"></canvas>
                       </div>
+                      <div
+                        id="exp-type-chart-legend"
+                        class="rounded-legend legend-vertical legend-bottom-left pt-4"
+                      ></div>
                     </div>
                   </div>
                 </div>
@@ -205,16 +209,17 @@
 
         const expensesByPerson = {};
         data.forEach((expense) => {
-          if (!expensesByPerson[expense.email]) {
-            if (expense.email === "saurabhchaubey98@gmail.com") {
-              expense.email = "Saurabh Chaubey";
-            }
-            if (expense.email === "nmishra1309@gmail.com") {
-              expense.email = "Neha Mishra";
-            }
-            expensesByPerson[expense.email] = [];
+          let personName = expense.email; // Start with the original email
+          if (expense.email === "saurabhchaubey98@gmail.com") {
+            personName = "Saurabh Chaubey";
+          } else if (expense.email === "nmishra1309@gmail.com") {
+            personName = "Neha Mishra";
           }
-          expensesByPerson[expense.email].push(expense);
+
+          if (!expensesByPerson[personName]) {
+            expensesByPerson[personName] = [];
+          }
+          expensesByPerson[personName].push(expense);
         });
 
         const personEmails = Object.keys(expensesByPerson);
@@ -285,6 +290,23 @@
               plugins: {
                 legend: {
                   display: true,
+                },
+                afterDatasetUpdate: function (chart, args, options) {
+                  const chartId = chart.canvas.id;
+                  var i;
+                  const legendId = document.getElementById(chartId + "-legend");
+                  if (legendId) {
+                    legendId.innerHTML = "";
+                    const ul = document.createElement("ul");
+                    for (i = 0; i < chart.data.datasets[0].data.length; i++) {
+                      ul.innerHTML += `
+                                <li>
+                                    <small style="background-color: ${chart.data.datasets[0].legendColor[i]}">${type} ": "${person1ExpensesByType[type]}</small>
+                                </li>
+                            `;
+                    }
+                    legendId.appendChild(ul);
+                  }
                 },
               },
             },
